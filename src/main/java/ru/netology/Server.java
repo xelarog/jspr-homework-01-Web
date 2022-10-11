@@ -3,6 +3,7 @@ package ru.netology;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +18,6 @@ public final class Server {
     private ConcurrentHashMap<String, ConcurrentHashMap<String, Handler>> handlers = new ConcurrentHashMap<>();
 
     public void startServer(int port) {
-
         ExecutorService threadpool = Executors.newFixedThreadPool(maxThreads);
         try (final var serverSocket = new ServerSocket(port);) {
             while (true) {
@@ -89,7 +89,6 @@ public final class Server {
             final var request = new Request(method, path, headers, null);
             System.out.println(request);
 
-
             // для GET тела нет
             if (!method.equals("GET")) {
                 in.skip(headersDelimiter.length);
@@ -110,7 +109,11 @@ public final class Server {
                 notFound(out);
                 return;
             }
-            var handler = handlersValueMap.get(request.getPath());
+
+            String key = request.getPath();
+            if(path.contains("?"))
+                key = request.getPath().substring(0,path.indexOf("?"));
+            var handler = handlersValueMap.get(key);
             if (handler == null) {
                 notFound(out);
                 return;
@@ -173,7 +176,10 @@ public final class Server {
             handlersValueMap = new ConcurrentHashMap<>();
             handlers.put(method, handlersValueMap);
         }
-        handlersValueMap.putIfAbsent(path, handler);
+        String key = path;
+        if(path.contains("?"))
+            key = path.substring(0,path.indexOf("?"));
+        handlersValueMap.putIfAbsent(key, handler);
     }
 }
 

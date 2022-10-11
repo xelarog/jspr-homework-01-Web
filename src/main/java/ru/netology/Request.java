@@ -1,6 +1,14 @@
 package ru.netology;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
+
 
 public class Request {
 
@@ -30,6 +38,17 @@ public class Request {
 
     public String getBody() {
         return body;
+    }
+
+    public List<NameValuePair> getQueryParams() throws URISyntaxException {
+        return URLEncodedUtils.parse(new URI(path), StandardCharsets.UTF_8);
+     }
+
+    public String getQueryParam(String name) throws URISyntaxException {
+        Optional<NameValuePair> list =  URLEncodedUtils.parse(new URI(path), StandardCharsets.UTF_8).stream()
+                .filter(p -> p.getName().equals(name))
+                .findFirst();
+        return list.map(NameValuePair::getValue).orElse(null);
     }
 
     @Override
